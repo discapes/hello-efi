@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64",
+            "compilerArgs": [
+                "-target x86_64-unknown-windows ",
+                "\t-ffreestanding ",
+                "\t-fshort-wchar ",
+                "\t-mno-red-zone",
+                "\t-nostdlib",
+                "\t-I./gnu-efi/inc",
+                "\t-Wl,-entry:efi_main ",
+                "\t-Wl,-subsystem:efi_application",
+                "\t-fuse-ld=lld-link"
+            ]
+        }
+    ],
+    "version": 4
+}
