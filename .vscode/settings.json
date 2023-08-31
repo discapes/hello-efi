@@ -5,7 +5,11 @@
         "format": "c",
         "initializer_list": "c",
         "span": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "cstdlib": "c",
+        "def.h": "c",
+        "libc.h": "c",
+        "sstream": "c"
     },
     "editor.insertSpaces": false,
     "editor.formatOnSave": true
