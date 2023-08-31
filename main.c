@@ -265,7 +265,77 @@ void printMmapInfo()
 	print(" KiB\n");
 }
 
-EFI_STATUS efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable)
+struct Region
+{
+	u8 *baseAddress;
+	i64 nPages;
+};
+
+struct RegionListCursor
+{
+	i64 region;
+	i64 page;
+	i64 totalPagesUsed;
+};
+
+i64 PAGESIZE = 4096;
+
+u8 *getNextAvailablePage(struct RegionListCursor cursor, struct Region *availableRegions)
+{
+	struct Region currentRegion = availableRegions[cursor.region];
+	u8 *pageAddress = currentRegion.baseAddress + cursor.page + PAGESIZE;
+	cursor.totalPagesUsed++;
+
+	if (cursor.page == currentRegion.nPages)
+	{
+		// this was the last page, move on
+		cursor.page = 0;
+		cursor.region++;
+	}
+	else
+	{
+		cursor.page++;
+	}
+	return pageAddress;
+}
+
+#pragma pack(1)
+
+struct mapping_table
+{
+	uint64_t entries[512];
+};
+
+#pragma pack()
+
+__attribute__((aligned(4096))) struct mapping_table pml4;
+
+void identityMapPages()
+{
+	// these 4 are calculated from the memory map
+	struct Region availableRegions[1000];
+	u8 *pKernel;
+	i64 kernelSize;
+	i64 pagesOfRam;
+
+	i64 pagesOfPMMStack = pagesOfRam / 512; // 4096(pagesize) / 8(pointerSize)
+	struct RegionListCursor cursor = {0};
+
+	i64 pagesForMapTables = 0;
+
+	// identity map the PMM Stack
+	for (int i = 0; i < pagesOfPMMStack; i++)
+	{
+		if (cursor.totalPagesUsed > pagesForMapTables - 10)
+			// oh no, we will be short on identity mapped pages, we need to map more
+			// lets create a new PT and fill it, so we get another 2MiB to use
+			for (int i = 0; i < 512; i++)
+				identityMap(pagesForMapTables++);
+	}
+}
+
+EFI_STATUS
+efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable)
 {
 	EFI_STATUS result;
 

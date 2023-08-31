@@ -27,6 +27,6 @@ mcopy -i fat.img bootx64.efi ::/efi/boot
 
 # OVMF_CODE.fd is part of the edk2-ovmf, but it's already a dependency of qemu-system-x86
 # press ctrl+a, x to exit
-qemu-system-x86_64 -cpu host -smp 1 -enable-kvm \
+qemu-system-x86_64 -cpu host -m 10G -smp 1 -enable-kvm \
 	-drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.fd \
 	-drive format=raw,file=fat.img
