@@ -1,6 +1,7 @@
 #include <efi.h>
 #include <stdbool.h>
 #include "libk.h"
+#include "noto.h"
 
 #define errorCheck(actual, expected) \
 	if (actual != expected)          \
@@ -29,23 +30,12 @@ wchar_t *EFI_MEMORY_TYPE_STRINGS[] = {
 	L"EfiPersistentMemory",
 };
 
-wchar_t *EFI_MEMORY_TYPE_STRINGS_2[] = {
-	L"AddressRangeReserved",
-	L"AddressRangeMemory",
-	L"AddressRangeMemory",
-	L"AddressRangeMemory",
-	L"AddressRangeMemory",
-	L"AddressRangeReserved",
-	L"AddressRangeReserved",
-	L"AddressRangeMemory",
-	L"AddressRangeReserved",
-	L"AddressRangeACPI",
-	L"AddressRangeNVS",
-	L"AddressRangeReserved",
-	L"AddressRangeReserved",
-	L"AddressRangeReserved",
-	L"AddressRangePersistentMemory",
-};
+wchar_t *EFI_GRAPHICS_PIXEL_FORMAT_STRINGS[] = {
+	L"PixelRedGreenBlueReserved8BitPerColor",
+	L"PixelBlueGreenRedReserved8BitPerColor",
+	L"PixelBitMask",
+	L"PixelBltOnly",
+	L"PixelFormatMa"};
 
 bool isUsableMem(UINT32 descType)
 {
@@ -55,6 +45,8 @@ bool isUsableMem(UINT32 descType)
 		   descType == 4 ||
 		   descType == 7;
 }
+
+int _fltused = 0;
 
 EFI_STATUS efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable)
 {
@@ -78,6 +70,7 @@ EFI_STATUS efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable)
 		result = systemTable->BootServices->LocateProtocol(&gopGuid, NULL, (void **)&gop);
 		successCheck(result);
 		print(L"Got graphics output protocol, listing video modes...\r\n");
+		uint64_t w, h, fbb, fbs, pixw;
 
 		for (int i = 0; i < gop->Mode->MaxMode; i++)
 		{
@@ -90,7 +83,50 @@ EFI_STATUS efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable)
 			print(itoa(info->HorizontalResolution));
 			print(L"x");
 			print(itoa(info->VerticalResolution));
-			print(i == gop->Mode->Mode ? L" (current)\r\n" : L"\r\n");
+			print(L" [");
+			print(itoa(info->PixelsPerScanLine));
+			print(L" pps]");
+			print(L" [format ");
+			print(EFI_GRAPHICS_PIXEL_FORMAT_STRINGS[info->PixelFormat]);
+			print(L"]");
+
+			if (i == gop->Mode->Mode)
+			{
+				print(L" (current)");
+				w = info->HorizontalResolution;
+				h = info->VerticalResolution;
+				fbb = gop->Mode->FrameBufferBase;
+				fbs = gop->Mode->FrameBufferSize;
+				pixw = 4;
+			}
+			println();
+		}
+
+		print(L"Framebuffer address: ");
+		print(itoa_base(fbb, 16));
+		print(L" - size: ");
+		print(itoa(fbs));
+		println();
+
+		for (int i = 0; i < gop->Mode->FrameBufferSize; i += 4)
+		{
+			uint8_t *pix = (uint8_t *)(gop->Mode->FrameBufferBase + i);
+			pix[0] = 255;
+			pix[1] = 200;
+			pix[2] = (255 * i) / gop->Mode->FrameBufferSize;
+		}
+
+		int aOffset = ('a' - 32) * 9 * 16;
+		for (int row = 0; row < 16; row++)
+		{
+			for (int col = 0; col < 9; col++)
+			{
+				uint8_t *pix = (uint8_t *)(fbb + (row * w * 4) + col * 4);
+				double opacity = (double)(255 - noto[aOffset + row * 9 + col]) / 255.;
+				pix[0] = pix[0] * opacity;
+				pix[1] = pix[1] * opacity;
+				pix[2] = pix[2] * opacity;
+			}
 		}
 	}
 

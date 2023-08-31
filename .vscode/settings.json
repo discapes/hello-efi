@@ -1,10 +1,12 @@
 {
     "files.associations": {
-        "stdint.h": "c",
-        "sstream": "c",
-        "stdarg.h": "c",
-        "stdio.h": "c",
-        "format": "c"
+        "array": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "span": "c",
+        "cstdint": "c"
     },
-    "editor.insertSpaces": false
+    "editor.insertSpaces": false,
+    "editor.formatOnSave": true
 }

@@ -47,10 +47,15 @@ wchar_t *itoa_buf(int value, wchar_t *str, int base)
     return rc;
 }
 
-wchar_t *itoa(int value)
+wchar_t *itoa_base(int value, int base)
 {
     static wchar_t buf[100];
     memset(buf, 0, sizeof(buf));
-    itoa_buf(value, buf, 10);
+    itoa_buf(value, buf, base);
     return buf;
+}
+
+wchar_t *itoa(int value)
+{
+    return itoa_base(value, 10);
 }
