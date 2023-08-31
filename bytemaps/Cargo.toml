@@ -6,4 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-noto-sans-mono-bitmap = "0.2.0"
+anyhow = "1.0.75"
+noto-sans-mono-bitmap = { version = "0.2.0", default-features = false, features = ["regular", "raster_heights_all", "unicode_ranges_default"] }

@@ -1,7 +1,7 @@
 #include <efi.h>
 #include <stdbool.h>
 #include "libk.h"
-#include "noto.h"
+#include "bytemaps/noto_16.h"
 
 #define errorCheck(actual, expected) \
 	if (actual != expected)          \
@@ -39,11 +39,9 @@ wchar_t *EFI_GRAPHICS_PIXEL_FORMAT_STRINGS[] = {
 
 bool isUsableMem(UINT32 descType)
 {
-	return descType == 1 ||
-		   descType == 2 ||
-		   descType == 3 ||
-		   descType == 4 ||
-		   descType == 7;
+	return descType == EfiBootServicesCode ||
+		   descType == EfiBootServicesData ||
+		   descType == EfiConventionalMemory;
 }
 
 struct screen
@@ -170,7 +168,7 @@ EFI_STATUS initScreen(EFI_SYSTEM_TABLE *systemTable)
 			screen.line = 1;
 			screen.fontH = 16;
 			screen.fontW = 9;
-			screen.font = noto;
+			screen.font = noto_16_map;
 		}
 		printlnCon();
 	}
@@ -230,7 +228,7 @@ void drawBackground()
 
 void printMmapInfo()
 {
-
+	int printedI = 0;
 	int n = mmap.size / mmap.descSize;
 	int usableMemPartSize = 0;
 	int usableMemTotalSize = 0;
@@ -248,13 +246,13 @@ void printMmapInfo()
 		{
 			if (usableMemPartSize > 0)
 			{
-				print(itoa(i - 1));
-				print(": AddressRangeMemory - ");
+				print(itoa(printedI++));
+				print(": --- - ");
 				print(itoa(usableMemPartSize));
 				print(" KiB\n");
 				usableMemPartSize = 0;
 			}
-			print(itoa(i));
+			print(itoa(printedI++));
 			print(": ");
 			print(EFI_MEMORY_TYPE_STRINGS[desc->Type]);
 			print(" - ");

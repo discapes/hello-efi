@@ -12,5 +12,5 @@
         "sstream": "c"
     },
     "editor.insertSpaces": false,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
 }
